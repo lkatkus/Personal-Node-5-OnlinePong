@@ -16,84 +16,94 @@ const io = socketIO(server);
 // MIddleware
 app.use(express.static(publicPath));
 
-let playerArray = [];
 let gameInterval;
 
-const gameState = {
+const defaultGameState = {
     ball: {
-        x: 50,
-        y: 50
+        x: 30,
+        y: 50,
+        speedX: 1,
+        speedY: 1
     },
     players: {
         player1: {
-            position: 50
+            position: 50,
+            socket: null
         },
         player2: {
-            position: 50
+            position: 50,
+            socket: null
         }
     }
 }
 
+let gameState = {...defaultGameState};
+
 // Routes and listener
 io.on('connection', (socket) => {
     
-    console.log('connection');
+    console.log('=== NEW CONNECTION ===');
+       
+    let status; /* New user status placeholder */
 
-    // Check if game is not full
-    if(playerArray.length < 2){
-        
-        let status;
+    // Check players array and set user status
+    if(!gameState.players.player1.socket){
+        status = 'player1';
+        gameState.players.player1.socket = socket.id;
 
-        if(playerArray.length === 0){ /* !!! Needs fixing. If player1 leaves, then length != 0 and other player gets player2. Fix - add checker which player is present !!! */
-            console.log('player 1');
-            status = 'player1';
-        }else{
-            console.log('player 2');
-            status = 'player2';
-        }      
+    }else if(!gameState.players.player2.socket){
+        status = 'player2';
+        gameState.players.player2.socket = socket.id;
 
-        socket.emit('newPlayer', {token:'token1', status}, (player) => {
-            // Adds returned player object to players array
-            playerArray.push(player);
-            
-            // Start game if 2 players are present
-            if(playerArray.length === 2){
-                io.emit('startGame', gameState);
-                let speed = 5;
-
-                gameInterval = setInterval(() => {
-                    gameState.ball.x += speed;
-                    if(gameState.ball.x >= 100){
-                        speed = -speed;
-                    }else if(gameState.ball.x <= 0){
-                        speed = -speed;
-                    }
-                    io.emit('ballMoved', gameState);
-                }, 1000 / 2)
-            };
-        });
     }else{
-        // Set user status to 'viewer' if already 2 players present
-        socket.emit('newPlayer', {token:'token1', status: 'viewer'});
+        return socket.emit('newPlayer', {token:'token1', status: 'viewer'});
     }
+
+    // Handles new player creation
+    socket.emit('newPlayer', {token:'token1', status}, (player) => {  
+        // Start game if 2 players are present
+        if(gameState.players.player1.socket && gameState.players.player2.socket){
+            io.emit('startGame', gameState);
+            
+            // Sets interval and emits event to start ball movement
+            gameInterval = setInterval(() => {
+                gameState.ball.x +=  gameState.ball.speedX;
+                gameState.ball.y +=  gameState.ball.speedY;
+                
+                // Handles basic collisions
+                if(gameState.ball.x >= 100){
+                    gameState.ball.speedX = -gameState.ball.speedX;
+                }else if(gameState.ball.x <= 0){
+                    gameState.ball.speedX = -gameState.ball.speedX;
+                }
+
+                if(gameState.ball.y >= 100){
+                    gameState.ball.speedY = -gameState.ball.speedY;
+                }else if(gameState.ball.y <= 0){
+                    gameState.ball.speedY = -gameState.ball.speedY;
+                }
+
+                io.emit('ballMoved', gameState);
+            }, 1000 / 60);
+        };
+    });
+    
 
     socket.on('playerMoving', (player) => {
         // Update gameState with new player position
         gameState.players[player.status].position = player.newPosition;
-
         io.emit('playerMoved', gameState);
-    })
-
-    socket.on('ballMoved', (newBallPosition) => {
-        console.log(newBallPosition);
     });
 
+    // Handles disconnects, state and interval clear
     socket.on('disconnect', () => {
-        // Remove disconnected player and free a spot for new player
-        playerArray = playerArray.filter((item) => {
-            return item.socket !== socket.id;
+        // Removes disconnected player form gameState
+        Object.entries(gameState.players).forEach(([key, value]) => {
+            if(value.socket === socket.id){
+                value.socket = null;
+            }
         })
-
+        // Clears interval to prevent stacking of intervals with new connections
         clearInterval(gameInterval);
     })
 })

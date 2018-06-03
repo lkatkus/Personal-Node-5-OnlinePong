@@ -16,3 +16,14 @@ body, html{
 canvas{
     background-color: grey;
 }
+
+.infoContainer{
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
+.infoContainer h2{
+    margin: 0;
+    padding: 0;
+}

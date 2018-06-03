@@ -41,7 +41,7 @@ class User{
                 status: this.status,
                 newPosition: playerY
             });
-        })
+        });
     }
 
     // Creates player image / paddle
@@ -51,6 +51,10 @@ class User{
         let playerImage = ctx.getImageData(0, 0, this.playerWidth, this.playerHeight);
         void ctx.clearRect(0, 0, canvas.width, canvas.height);
         return playerImage;
+    }
+
+    displayerPlayerId(){
+        document.getElementById('playerId').innerText = this.status;
     }
 }
 
@@ -70,7 +74,7 @@ class Ball{
     drawBall(){
         ctx.beginPath();
         ctx.fillStyle = this.color;
-        ctx.arc(convertWidth(currentGameState.ball.x), 200, this.radius, 0, Math.PI*2, true);
+        ctx.arc(convertWidth(currentGameState.ball.x), convertHeight(currentGameState.ball.y), this.radius, 0, Math.PI*2, true);
         ctx.fill();
     }
 }
@@ -83,6 +87,7 @@ socket.on('newPlayer', (data, callback) => {
 
     if(data.status === 'player1' || data.status === 'player2'){
         user.addEventListeners();
+        user.displayerPlayerId();
     }
 
     return callback({socket: socket.id, token: data.token});
@@ -116,7 +121,7 @@ socket.on('startGame', (gameState) => {
     // Starts animation
     setInterval(() => {
         animation();
-    }, 1000 / 30)
+    }, 1000 / 60)
 })
 
 const animation = () => {
