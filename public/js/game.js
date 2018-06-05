@@ -85,7 +85,15 @@ class Ball{
 
 // Socket event listeners
 // Main listener for creating new player on connection
+socket.on('connect', () => {
+    let path = window.location.pathname.split('/');
+
+    socket.emit('join', {gameId: path[path.length-1]});
+})
+
+
 socket.on('newPlayer', (data, callback) => {
+    
     user = new User(socket, data.gameId, data.status);
     
     if(data.status === 'player1' || data.status === 'player2'){
@@ -103,7 +111,7 @@ socket.on('playerMoved', (gameState) => {
 });
 
 socket.on('ballMoved', (gameState) => {
-    console.log('ballMoved')
+    // Update game state with new ball locations
     currentGameState = gameState;
 })
 
