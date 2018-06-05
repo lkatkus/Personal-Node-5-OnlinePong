@@ -91,7 +91,6 @@ socket.on('connect', () => {
     socket.emit('join', {gameId: path[path.length-1]});
 })
 
-
 socket.on('newPlayer', (data, callback) => {
     
     user = new User(socket, data.gameId, data.status);
@@ -120,30 +119,26 @@ socket.on('newViewer', () => {
 })
 
 socket.on('startGame', (gameState) => {
-    console.log('========= STARTING GAME =========');
-    console.log(`========= ${user.status} =========`);
-
     // Sets currentGameState to default
     currentGameState = gameState;
     
     // Creates a new Ball instance
     ball = new Ball();
 
-    // Starts animation interval
-    setInterval(() => {
-        animation();
-    }, 1000 / 60)
+    // Starts animations
+    animation();
 })
 
 // Main animation function
 const animation = () => {
-    window.requestAnimationFrame(() => {
-              
-        void ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.putImageData(user.playerImage, 50, convertHeight(currentGameState.players.player1.position) - user.playerHeight / 2);
-        ctx.putImageData(user.playerImage, canvas.width - 50 - user.playerWidth, convertHeight(currentGameState.players.player2.position) - user.playerHeight / 2);
-        ball.drawBall();
-    });
+    // Draw elements
+    void ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.putImageData(user.playerImage, 50, convertHeight(currentGameState.players.player1.position) - user.playerHeight / 2);
+    ctx.putImageData(user.playerImage, canvas.width - 50 - user.playerWidth, convertHeight(currentGameState.players.player2.position) - user.playerHeight / 2);
+    ball.drawBall();
+    
+    // Call canvas update
+    requestAnimationFrame(animation);
 }
 
 // Utilities

@@ -20,8 +20,6 @@ const io = socketIO(server);
 app.use(express.static(publicPath));
 
 // GAME SETUP
-// Game state setup
-
 let currentGames = []; /* placeholder for all current games data */
 
 // Listener
@@ -48,6 +46,8 @@ io.on('connection', (socket) => {
         }else if(currentGame.gameState.players.player2.socket === null){
             status = 'player2';
             currentGame.gameState.players.player2.socket = socket.id;
+        }else{
+            status = 'viewer';
         }
         
         // Set room to gameId
@@ -106,7 +106,7 @@ io.on('connection', (socket) => {
 // Middleware
 const createNewGame = (req, res, next) => {
     // Creates a new gameId
-    let gameId = Math.floor(Math.random() * 100);
+    let gameId = Math.floor(Math.random() * 100 + 1);
     // !!! ADD CHECKER IF GAME EXISTS !!!
 
     // Creates new Game instance and push to currentGames array
