@@ -4,6 +4,9 @@ const http = require('http');
 const express = require('express');
 const socketIO = require('socket.io');
 
+const Game = require('./game/game');
+const {getGameId} = require('./utils/getGameId');
+
 // Config
 const publicPath = path.join(__dirname, '../public');
 const PORT = process.env.PORT || 3000;
@@ -13,37 +16,29 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-// MIddleware
+// Public folder setup
 app.use(express.static(publicPath));
 
-let gameInterval;
+// GAME SETUP
+// Game state setup
 
-const defaultGameState = {
-    ball: {
-        x: 30,
-        y: 50,
-        speedX: 1,
-        speedY: 1
-    },
-    players: {
-        player1: {
-            position: 50,
-            socket: null
-        },
-        player2: {
-            position: 50,
-            socket: null
-        }
-    }
-}
+const currentGames = []; /* placeholder for all current games data */
+let currentGame;
 
-let gameState = {...defaultGameState};
-
-// Routes and listener
+// Listener
 io.on('connection', (socket) => {
     
     console.log('=== NEW CONNECTION ===');
-       
+
+    let gameId = getGameId(socket); /* parses referer url and returns gameId to be used as a room */
+    socket.join(gameId);
+
+    currentGame = currentGames.filter((game) => {
+        return game.gameId = gameId;
+    });
+
+    let gameState = currentGame[0].gameState;
+
     let status; /* New user status placeholder */
 
     // Check players array and set user status
@@ -56,17 +51,26 @@ io.on('connection', (socket) => {
         gameState.players.player2.socket = socket.id;
 
     }else{
-        return socket.emit('newPlayer', {token:'token1', status: 'viewer'});
+        // return socket.emit('newPlayer', {gameId, status: 'viewer'});
     }
 
+
+    console.log('=========');
+    currentGames.forEach((game) => {
+        console.log(game.gameId);
+        console.log(game.gameState);
+        console.log('xxx');
+    });
+    console.log('=========');
+
     // Handles new player creation
-    socket.emit('newPlayer', {token:'token1', status}, (player) => {  
+    socket.emit('newPlayer', {gameId, status}, (player) => {  
         // Start game if 2 players are present
         if(gameState.players.player1.socket && gameState.players.player2.socket){
-            io.emit('startGame', gameState);
+            io.to(gameId).emit('startGame', gameState);
             
             // Sets interval and emits event to start ball movement
-            gameInterval = setInterval(() => {
+            currentGame.gameInterval = setInterval(() => {
                 gameState.ball.x +=  gameState.ball.speedX;
                 gameState.ball.y +=  gameState.ball.speedY;
                 
@@ -83,7 +87,7 @@ io.on('connection', (socket) => {
                     gameState.ball.speedY = -gameState.ball.speedY;
                 }
 
-                io.emit('ballMoved', gameState);
+                io.to(gameId).emit('ballMoved', gameState);
             }, 1000 / 60);
         };
     });
@@ -92,7 +96,7 @@ io.on('connection', (socket) => {
     socket.on('playerMoving', (player) => {
         // Update gameState with new player position
         gameState.players[player.status].position = player.newPosition;
-        io.emit('playerMoved', gameState);
+        io.to(gameId).emit('playerMoved', gameState);
     });
 
     // Handles disconnects, state and interval clear
@@ -104,11 +108,52 @@ io.on('connection', (socket) => {
             }
         })
         // Clears interval to prevent stacking of intervals with new connections
-        clearInterval(gameInterval);
+        clearInterval(currentGame.gameInterval);
     })
 })
+
+// SERVER SETUP
+// Middleware
+const createNewGame = (req, res, next) => {
+    console.log('=== Creating a new game ===');
+    // Creates a new gameId
+    let gameId = Math.floor(Math.random() * 100);
+    // !!! ADD CHECKER IF GAMEID EXISTS !!!
+
+    // Creates new Game instance and push to currentGames array
+    let currentGame = new Game(gameId);
+    currentGames.push(currentGame);
+   
+    // Sets gameId to request and continues
+    req.gameId = gameId;
+    next();
+};
+
+const checkCurrentGames = (req, res, next) => {
+    // console.log('=== Checking games ===');
+    // // Checks if there is a current game with such gameId
+    // let game = currentGames.filter((game) => {
+    //     return game.gameId === Number(req.params.id);
+    // });
+
+    // if(currentGames.length === 0 || game.length === 0){
+    //     res.redirect('/'); /* redirec to start page of if game with such gameId does not exist */
+    // }else{
+        next();
+    // }
+}
+
+// Routes
+app.get('/game', createNewGame, (req, res, next) => {
+    res.redirect(`/game/${req.gameId}`);
+});
+
+app.get('/game/:id', checkCurrentGames, (req, res) => {
+    res.sendFile(publicPath + '/game.html');
+}); 
 
 // Starting server
 server.listen(PORT, () => {
     console.log('Server running');
 });
+

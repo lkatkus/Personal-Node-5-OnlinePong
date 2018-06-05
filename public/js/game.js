@@ -2,18 +2,23 @@
 const container = document.querySelector(".container");
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+
+// Set canvas size
 canvas.width = container.offsetWidth;
 canvas.height = container.offsetHeight;
 
+// Variables
 let currentGameState;
 let user;
 let ball;
-const socket = io();
 
+const socket = io(); /* Enables socket-io on client side */
+
+// Class definitions
 class User{
-    constructor(socket, token, status){
+    constructor(socket, gameId, status){
         this.socket = socket;
-        this.token = token;
+        this.gameId = gameId;
         this.status = status;
         
         this.playerWidth = 20;
@@ -29,10 +34,9 @@ class User{
         this.playerImage = this.createPlayerImage();
     }
 
-    // Add all needed event listeners
     addEventListeners(){
+        // Mouse controls
         canvas.addEventListener('mousemove', (event) => {
-            
             // Converts player position px to percent
             let playerY = (event.offsetY * 100) / canvas.height;
 
@@ -54,7 +58,7 @@ class User{
     }
 
     displayerPlayerId(){
-        document.getElementById('playerId').innerText = this.status;
+        document.getElementById('playerId').innerText = this.status + ' at game ' + this.gameId;
     }
 }
 
@@ -82,15 +86,14 @@ class Ball{
 // Socket event listeners
 // Main listener for creating new player on connection
 socket.on('newPlayer', (data, callback) => {
-    user = new User(socket, data.token, data.status);
+    user = new User(socket, data.gameId, data.status);
     
-
     if(data.status === 'player1' || data.status === 'player2'){
         user.addEventListeners();
         user.displayerPlayerId();
     }
 
-    return callback({socket: socket.id, token: data.token});
+    return callback({socket: socket.id, gameId: data.gameId});
 });
 
 // Listener for updating player positions
@@ -115,15 +118,16 @@ socket.on('startGame', (gameState) => {
     // Sets currentGameState to default
     currentGameState = gameState;
     
-    // Creates a ball instance
+    // Creates a new Ball instance
     ball = new Ball();
 
-    // Starts animation
+    // Starts animation interval
     setInterval(() => {
         animation();
     }, 1000 / 60)
 })
 
+// Main animation function
 const animation = () => {
     window.requestAnimationFrame(() => {
               
@@ -134,6 +138,7 @@ const animation = () => {
     });
 }
 
+// Utilities
 const convertWidth = (percent) => {
     return (canvas.width * percent) / 100;
 }
