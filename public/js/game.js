@@ -35,7 +35,13 @@ class User{
         canvas.addEventListener('mousemove', (event) => {
             // Converts player position px to percent
             let playerY = event.offsetY;
+            
+            // Calculates needed scaling for player position if canvas size is not default
+            let currentCanvasHeight = canvas.getBoundingClientRect().height;
+            let positionScaling = canvas.height * 100 / currentCanvasHeight;
+            playerY = playerY / 100 * positionScaling;
 
+            // Emits event to server that player has moved
             socket.emit('playerMoving', {
                 socket: socket.id,
                 status: this.status,
@@ -43,6 +49,8 @@ class User{
                 newPosition: playerY
             });
         });
+
+        // Add touch controls
     }
 
     // Creates player image / paddle

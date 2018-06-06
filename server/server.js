@@ -89,11 +89,25 @@ io.on('connection', (socket) => {
 
                     // Collision detection for player1
                     if(ball.direction === 'left'){
+                        if(ball.y > player1.position - player1.playerHeight / 2 && ball.y < player1.position + player1.playerHeight / 2 && ball.x > 50 && ball.x <= 70){
+                            ball.speedX = -ball.speedX;
+                            ball.direction = 'right';
+                        }
 
+                        if(ball.x < 50){
+                            console.log('P2 WILL SCORE');
+                        }
                     }
                     // Collision detection for player2
                     if(ball.direction === 'right'){
-                        
+                        if(ball.y > player2.position - player2.playerHeight / 2 && ball.y < player2.position + player2.playerHeight / 2 && ball.x < canvas.width - 50 && ball.x >= canvas.width - 70){
+                            ball.speedX = -ball.speedX;
+                            ball.direction = 'left';
+                        }
+
+                        if(ball.x > canvas.width - 50){
+                            console.log('P1 WILL SCORE');
+                        }
                     }
 
                     io.to(gameId).emit('ballMoved', gameState);
