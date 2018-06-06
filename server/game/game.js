@@ -4,10 +4,11 @@ class Game{
         
         this.gameState = {
             ball: {
-                x: 30,
-                y: 50,
-                speedX: 1,
-                speedY: 1
+                x: 300,
+                y: 300,
+                speedX: 3,
+                speedY: 3,
+                direction: 'right'
             },
             players: {
                 player1: {

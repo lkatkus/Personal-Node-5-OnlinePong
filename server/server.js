@@ -21,6 +21,7 @@ app.use(express.static(publicPath));
 
 // GAME SETUP
 let currentGames = []; /* placeholder for all current games data */
+let canvas = {width: 900, height: 600}; /* canvas size to be passed to client */
 
 // Listener
 io.on('connection', (socket) => {
@@ -37,6 +38,7 @@ io.on('connection', (socket) => {
         })[0];
 
         let gameState = currentGame.gameState;
+        let ball = gameState.ball;
     
         // Check players array and set user status
         if(currentGame.gameState.players.player1.socket === null){
@@ -54,27 +56,44 @@ io.on('connection', (socket) => {
         socket.join(gameId);
 
         // Handles new player creation
-        socket.emit('newPlayer', {gameId, status}, (player) => {  
+        socket.emit('newPlayer', {gameId, status, canvas}, (player) => {  
+            currentPlayer = currentGame.gameState.players[status];
+            currentPlayer.playerHeight = player.playerHeight;
+
+            let player1 = currentGame.gameState.players['player1'];
+            let player2 = currentGame.gameState.players['player2'];
+
             // Start game if 2 players are present
             if(gameState.players.player1.socket && gameState.players.player2.socket){
                 io.to(gameId).emit('startGame', gameState);
                 
                 // Sets interval and emits event to start ball movement
                 currentGame.gameInterval = setInterval(() => {
-                    gameState.ball.x +=  gameState.ball.speedX;
-                    gameState.ball.y +=  gameState.ball.speedY;
+                    ball.x +=  ball.speedX;
+                    ball.y +=  ball.speedY;
                     
-                    // Handles basic collisions
-                    if(gameState.ball.x >= 100){
-                        gameState.ball.speedX = -gameState.ball.speedX;
-                    }else if(gameState.ball.x <= 0){
-                        gameState.ball.speedX = -gameState.ball.speedX;
+                    // Collision detection for borders and scoring
+                    if(ball.x >= canvas.width){
+                        ball.speedX = -ball.speedX;
+                        ball.direction = 'left';
+                    }else if(ball.x <= 0){
+                        ball.speedX = -ball.speedX;
+                        ball.direction = 'right';
                     }
 
-                    if(gameState.ball.y >= 100){
-                        gameState.ball.speedY = -gameState.ball.speedY;
-                    }else if(gameState.ball.y <= 0){
-                        gameState.ball.speedY = -gameState.ball.speedY;
+                    if(ball.y >= canvas.height){
+                        ball.speedY = -ball.speedY;
+                    }else if(ball.y <= 0){
+                        ball.speedY = -ball.speedY;
+                    }
+
+                    // Collision detection for player1
+                    if(ball.direction === 'left'){
+
+                    }
+                    // Collision detection for player2
+                    if(ball.direction === 'right'){
+                        
                     }
 
                     io.to(gameId).emit('ballMoved', gameState);

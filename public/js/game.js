@@ -3,10 +3,6 @@ const container = document.querySelector(".container");
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
-// Set canvas size
-canvas.width = container.offsetWidth;
-canvas.height = container.offsetHeight;
-
 // Variables
 let currentGameState;
 let user;
@@ -22,7 +18,7 @@ class User{
         this.status = status;
         
         this.playerWidth = 20;
-        this.playerHeight = canvas.height / 10;
+        this.playerHeight = 80;
         this.playerPosition = 0;
         
         if(status === 'player1'){
@@ -38,11 +34,12 @@ class User{
         // Mouse controls
         canvas.addEventListener('mousemove', (event) => {
             // Converts player position px to percent
-            let playerY = (event.offsetY * 100) / canvas.height;
+            let playerY = event.offsetY;
 
             socket.emit('playerMoving', {
                 socket: socket.id,
                 status: this.status,
+                playerHeight: this.playerHeight,
                 newPosition: playerY
             });
         });
@@ -78,7 +75,7 @@ class Ball{
     drawBall(){
         ctx.beginPath();
         ctx.fillStyle = this.color;
-        ctx.arc(convertWidth(currentGameState.ball.x), convertHeight(currentGameState.ball.y), this.radius, 0, Math.PI*2, true);
+        ctx.arc(currentGameState.ball.x, currentGameState.ball.y, this.radius, 0, Math.PI*2, true);
         ctx.fill();
     }
 }
@@ -87,20 +84,23 @@ class Ball{
 // Main listener for creating new player on connection
 socket.on('connect', () => {
     let path = window.location.pathname.split('/');
-
     socket.emit('join', {gameId: path[path.length-1]});
 })
 
 socket.on('newPlayer', (data, callback) => {
     
+    // Set canvas size
+    canvas.width = data.canvas.width;
+    canvas.height =  data.canvas.height;
+
     user = new User(socket, data.gameId, data.status);
     
     if(data.status === 'player1' || data.status === 'player2'){
         user.addEventListeners();
         user.displayerPlayerId();
     }
-
-    return callback({socket: socket.id, gameId: data.gameId});
+    
+    return callback({socket: socket.id, gameId: data.gameId, playerHeight: user.playerHeight});
 });
 
 // Listener for updating player positions
@@ -133,19 +133,10 @@ socket.on('startGame', (gameState) => {
 const animation = () => {
     // Draw elements
     void ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.putImageData(user.playerImage, 50, convertHeight(currentGameState.players.player1.position) - user.playerHeight / 2);
-    ctx.putImageData(user.playerImage, canvas.width - 50 - user.playerWidth, convertHeight(currentGameState.players.player2.position) - user.playerHeight / 2);
+    ctx.putImageData(user.playerImage, 50, currentGameState.players.player1.position - user.playerHeight / 2);
+    ctx.putImageData(user.playerImage, canvas.width - 50 - user.playerWidth, currentGameState.players.player2.position - user.playerHeight / 2);
     ball.drawBall();
     
     // Call canvas update
     requestAnimationFrame(animation);
-}
-
-// Utilities
-const convertWidth = (percent) => {
-    return (canvas.width * percent) / 100;
-}
-
-const convertHeight = (percent) => {
-    return (canvas.height * percent) / 100;
 }
