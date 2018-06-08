@@ -89,11 +89,11 @@ io.on('connection', (socket) => {
 
                     // Collision detection for player1
                     if(ball.direction === 'left'){
+                        // Change ball direction if collision with paddle
                         if(ball.y > player1.position - player1.playerHeight / 2 && ball.y < player1.position + player1.playerHeight / 2 && ball.x > 50 && ball.x <= 70){
                             ball.speedX = -ball.speedX;
                             ball.direction = 'right';
                         }
-
                         // Scoring handler
                         if(ball.x < 20){
                             // Set player score
@@ -101,15 +101,19 @@ io.on('connection', (socket) => {
                             // Reset ball position
                             ball.x = 700;
                             ball.y = 300;
+                            // Increase ball speed
+                            if(ball.speedX > -12){
+                                ball.speedX--;
+                            }
                         }
                     }
                     // Collision detection for player2
                     if(ball.direction === 'right'){
+                        // Change ball direction if collision with paddle
                         if(ball.y > player2.position - player2.playerHeight / 2 && ball.y < player2.position + player2.playerHeight / 2 && ball.x < canvas.width - 50 && ball.x >= canvas.width - 70){
                             ball.speedX = -ball.speedX;
                             ball.direction = 'left';
                         }
-
                         // Scoring handler
                         if(ball.x > canvas.width - 20){
                             // Set player score
@@ -117,6 +121,10 @@ io.on('connection', (socket) => {
                             // Reset ball position
                             ball.x = 200;
                             ball.y = 300;
+                            // Increase ball speed
+                            if(ball.speedX < 12){
+                                ball.speedX++;
+                            }
                         }
                     }
 

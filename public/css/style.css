@@ -21,6 +21,11 @@
         align-items: center;
         justify-content: center;
         flex-direction: column;
+        text-align: center;
+    }
+    
+    .container h2{
+        padding: 0 10px;
     }
 /* END COMMON STYLING */
 
@@ -46,6 +51,11 @@
 /* END INDEX HTML */
 
 /* GAME HTML STYLING */
+    
+    .canvasContainer{
+        width: 100%;
+    }
+
     canvas{
         background-color: grey;
         border-radius: 20px;
@@ -59,26 +69,26 @@
     .infoContainer{
         margin: 0;
         padding: 0;
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
 
     .playerOneInfo{
         position: absolute;
-        top: 20px;
+        top: 10px;
         left: 20px;
     }
 
     .playerTwoInfo{
         position: absolute;
-        top: 20px;
+        top: 10px;
         right: 20px;
     }
 
     .scoreContainer{
         position: absolute;
-        top: 20px;
+        top: 30px;
         transform: translateX(-50%);
-        font-size: 2rem;
+        font-size: 1.5rem;
     }
 
     .scoreContainer span{

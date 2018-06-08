@@ -1,5 +1,6 @@
 // Selectors
 const container = document.querySelector(".container");
+const canvasContainer = document.querySelector(".canvasContainer");
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
@@ -32,7 +33,7 @@ class User{
 
     addEventListeners(){
         // Mouse controls
-        canvas.addEventListener('mousemove', (event) => {
+        canvasContainer.addEventListener('mousemove', (event) => {
             // Get coordinates
             let playerY = event.offsetY;
             
@@ -50,8 +51,8 @@ class User{
             });
         });
 
-        canvas.addEventListener('touchmove', (event) => {
-
+        // Mobile controls
+        canvasContainer.addEventListener('touchmove', (event) => {
             // Get coordinates
             let playerY = event.touches[0].clientY - canvas.offsetTop;
             
