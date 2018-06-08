@@ -94,8 +94,13 @@ io.on('connection', (socket) => {
                             ball.direction = 'right';
                         }
 
-                        if(ball.x < 50){
-                            console.log('P2 WILL SCORE');
+                        // Scoring handler
+                        if(ball.x < 20){
+                            // Set player score
+                            player2.score++;
+                            // Reset ball position
+                            ball.x = 700;
+                            ball.y = 300;
                         }
                     }
                     // Collision detection for player2
@@ -105,8 +110,13 @@ io.on('connection', (socket) => {
                             ball.direction = 'left';
                         }
 
-                        if(ball.x > canvas.width - 50){
-                            console.log('P1 WILL SCORE');
+                        // Scoring handler
+                        if(ball.x > canvas.width - 20){
+                            // Set player score
+                            player1.score++;
+                            // Reset ball position
+                            ball.x = 200;
+                            ball.y = 300;
                         }
                     }
 

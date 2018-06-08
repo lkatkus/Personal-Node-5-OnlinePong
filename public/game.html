@@ -10,12 +10,27 @@
 <body>
     
     <div class="container">
-        <!-- For displaying information about player score, game status and etc -->
+    <!-- Player info and score -->
         <div class="infoContainer">
-            <h2>You are <span id="playerId"></span></h2>
+            
+            <div class="playerOneInfo">
+                <h2>You are <span id="playerId"></span></h2>
+            </div>
+            
+            <div class="playerTwoInfo">
+                <h2>Waiting for player 2</h2>
+            </div>
+            
+            <div class="scoreContainer">
+                <h2>
+                    <span id="p1Score">0</span> | <span id="p2Score">0</span>
+                </h2>
+            </div>
         </div>
-        
+
+    <!-- Main canvas for game -->
         <canvas id="canvas"></canvas>
+        
     </div>
 
     <script src="/socket.io/socket.io.js"></script>

@@ -33,7 +33,7 @@ class User{
     addEventListeners(){
         // Mouse controls
         canvas.addEventListener('mousemove', (event) => {
-            // Converts player position px to percent
+            // Get coordinates
             let playerY = event.offsetY;
             
             // Calculates needed scaling for player position if canvas size is not default
@@ -49,6 +49,32 @@ class User{
                 newPosition: playerY
             });
         });
+
+        canvas.addEventListener('touchmove', (event) => {
+
+            // Get coordinates
+            let playerY = event.touches[0].clientY - canvas.offsetTop;
+            
+            // Calculates needed scaling for player position if canvas size is not default
+            let currentCanvasHeight = canvas.getBoundingClientRect().height;
+            let positionScaling = canvas.height * 100 / currentCanvasHeight;
+            playerY = playerY / 100 * positionScaling;
+
+            // Checks if not moving out of bounds
+            if(playerY < 0){
+                playerY = 0;
+            }else if(playerY > canvas.height){
+                playerY = canvas.height;
+            }
+
+            // Emits event to server that player has moved
+            socket.emit('playerMoving', {
+                socket: socket.id,
+                status: this.status,
+                playerHeight: this.playerHeight,
+                newPosition: playerY
+            });
+        })
 
         // Add touch controls
     }
@@ -118,6 +144,13 @@ socket.on('playerMoved', (gameState) => {
 });
 
 socket.on('ballMoved', (gameState) => {
+    // Check if the was a goal
+    if(currentGameState.players.player1.score !== gameState.players.player1.score || currentGameState.players.player2.score !== gameState.players.player2.score){
+        // Set new score
+        document.querySelector('#p1Score').innerText = gameState.players.player1.score;
+        document.querySelector('#p2Score').innerText = gameState.players.player2.score;
+    }
+    
     // Update game state with new ball locations
     currentGameState = gameState;
 })
@@ -127,6 +160,8 @@ socket.on('newViewer', () => {
 })
 
 socket.on('startGame', (gameState) => {
+    document.querySelector('.playerTwoInfo > h2').innerText = 'Other player is ready!';
+
     // Sets currentGameState to default
     currentGameState = gameState;
     

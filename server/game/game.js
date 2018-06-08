@@ -13,11 +13,13 @@ class Game{
             players: {
                 player1: {
                     position: 50,
-                    socket: null
+                    socket: null,
+                    score: 0
                 },
                 player2: {
                     position: 50,
-                    socket: null
+                    socket: null,
+                    score: 0
                 }
             }
         };
